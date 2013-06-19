@@ -1,5 +1,7 @@
+from datetime import datetime
 import os
-from oit.support.factory import TestClassFactory
+import traceback
+from oit.support.factory import ScenariosFactoryParser
 from oit.support.rest import ServiceProxy
 from oit.support.util import FileUtil
 
@@ -10,36 +12,37 @@ class TestRunner:
     def run(self):
         try:
             self.__initialize()
-            self.__buildScenarios()
+            self.__reportStart()
+            ScenariosFactoryParser.serviceProxy = self.serviceProxy
+            ScenariosFactoryParser.parse(self.config['scenarios']).run({})
             self.__reportSuccess()
+
         except Exception, e:
             self.__reportFailure(e)
 
     def __initialize(self):
         self.config = FileUtil.loadConfig(self.CONFIG_FILE)
-        self.serviceProxy = ServiceProxy(self.config['opal']['server'], self.config['opal']['user'],
-                                         self.config['opal']['password'])
+        self.serviceProxy = ServiceProxy(server=self.config['proxy']['server'],
+                                         user=self.config['proxy']['user'],
+                                         password=self.config['proxy']['password'],
+                                         verbose=self.config['proxy']['verbose'])
 
-    def __buildScenarios(self):
-        scenarios = self.config['scenarios']
-
-        for scenario in scenarios:
-            for test in scenarios[scenario]:
-                className = "oit.scenarios.%s.%s" % (scenario, test)
-                test = TestClassFactory.create(className, scenarios[scenario][test])
-                test.setServiceProxy(self.serviceProxy)
-                test.run()
+    def __reportStart(self):
+        print '*' * 80
+        print "# Opal Integration Test Started @ (%s)\n" % datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     def __reportSuccess(self):
         print '*' * 80
-        print "* SUCCESS"
+        print "*** SUCCESS ***"
         print "All test passed!"
         print '*' * 80
 
     def __reportFailure(self, e):
         print '*' * 80
-        print "* ERROR"
+        print "*** FAILURE ***"
         print e
+        if self.config['traceOn']:
+            print traceback.format_exc()
         print '*' * 80
 
 

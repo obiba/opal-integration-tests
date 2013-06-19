@@ -1,24 +1,16 @@
 import unittest
-import yaml
-from oit.runner import TestRunner
-from oit.scenarios.datasource import CreateDatasource
-from oit.support.factory import TestClassFactory
+from oit.scenarios.scenario import Scenarios, Scenario
+from oit.support.factory import ScenariosFactoryParser
+from oit.support.util import FileUtil
 
 
 class TestReflection(unittest.TestCase):
 
     def test_createClassesFromConfigFile(self):
-        config = self.__loadConfig(TestRunner().CONFIG_FILE)
-        scenarios = config['scenarios']
-
-        for scenario in scenarios:
-            for test in scenarios[scenario]:
-                className = "oit.scenarios.%s.%s" % (scenario, test)
-                test = TestClassFactory.create(className, scenarios[scenario][test])
-                self.assertIs(test, CreateDatasource)
-
-    def __loadConfig(self, configFile):
-        configFile = open(configFile, 'r')
-        config = yaml.load(configFile)
-        configFile.close()
-        return config
+        config = FileUtil.loadConfig("../../resources/opal/tests.conf")
+        ScenariosFactoryParser.serviceProxy = None
+        scenarios = ScenariosFactoryParser.parse(config['scenarios'])
+        self.assertIsInstance(scenarios, Scenarios)
+        self.assertEquals(len(scenarios.list), 1)
+        self.assertIsInstance(scenarios.list[0], Scenario)
+        self.assertEquals(len(scenarios.list[0].tests), 3)

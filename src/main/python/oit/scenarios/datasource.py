@@ -1,15 +1,13 @@
 import json
-from opal.file import OpalFile
 from opal.protobuf import Magma_pb2
-import os
 from oit.support.core import AbstractTest
 from oit.support.util import FileUtil
 
 
 class CreateDatasource(AbstractTest):
 
-    def run(self):
-        request = self.serviceProxy.buildRequest().accept_protobuf().content_type_protobuf()
+    def run(self, data):
+        request = self.serviceProxy.buildRequest().accept_json().content_type_protobuf()
 
         # build transient datasource factory
         factory = Magma_pb2.DatasourceFactoryDto()
@@ -18,12 +16,13 @@ class CreateDatasource(AbstractTest):
         hibernateFactory.database = getattr(self, 'type')
 
         # send request and parse response as a datasource
-        # request.post().resource('/datasources').content(factory.SerializeToString()).send()
+        response = request.post().resource('/datasources').content(factory.SerializeToString()).send()
+        self.appendData(data, 'datasource', response.content)
 
 
 class FindDatasource(AbstractTest):
 
-    def run(self):
+    def run(self, data):
         request = self.serviceProxy.buildRequest().accept_json()
 
         # get the list of datasources
@@ -39,7 +38,7 @@ class FindDatasource(AbstractTest):
 
 class CreateTable(AbstractTest):
 
-    def run(self):
+    def run(self, data):
         content = FileUtil.loadJsonAsString(getattr(self, 'file'))
         request = self.serviceProxy.buildRequest().accept_json().content_type_json()
         request.post().resource('/datasource/DummyDatasource/tables').content(content).send()
