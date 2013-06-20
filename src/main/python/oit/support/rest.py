@@ -113,17 +113,22 @@ class DatasourceCompareCommand(AbstractRequestCommand):
 
 
 class JsonTableCreateCommand(AbstractRequestCommand):
-    def __init__(self, opalRequest, dsName, file):
+    def __init__(self, opalRequest, dsName, jsonData):
         AbstractRequestCommand.__init__(self, opalRequest)
-        self.file = file
         self.dsName = dsName
+        self.jsonData = jsonData
 
     def execute(self):
-        content = FileUtil.loadJsonAsString(self.file)
         resourcePath = "/datasource/%s/tables" % self.dsName
-        self.opalRequest.accept_json().content_type_json().post().resource(resourcePath).content(content)
+        self.opalRequest.accept_json().content_type_json().post().resource(resourcePath).content(self.jsonData)
 
         return self.opalRequest.send()
+
+
+class JsonFileTableCreateCommand(JsonTableCreateCommand):
+
+    def __init__(self, opalRequest, dsName, file):
+        JsonTableCreateCommand.__init__(self, opalRequest, dsName, FileUtil.loadJsonAsString(file))
 
 
 class TablesListCommand(AbstractRequestCommand):
