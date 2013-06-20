@@ -2,7 +2,7 @@ from datetime import datetime
 import os
 import traceback
 from oit.support.factory import ScenariosFactoryParser
-from oit.support.rest import ServiceProxy
+from oit.support.rest import ServiceProxy, RequestCommandBuilder
 from oit.support.util import FileUtil
 
 
@@ -13,7 +13,7 @@ class TestRunner:
         try:
             self.__initialize()
             self.__reportStart()
-            ScenariosFactoryParser.serviceProxy = self.serviceProxy
+            ScenariosFactoryParser.requestCommandBuilder = self.requestCommandBuilder
             ScenariosFactoryParser.parse(self.config['scenarios']).run({})
             self.__reportSuccess()
 
@@ -26,6 +26,7 @@ class TestRunner:
                                          user=self.config['proxy']['user'],
                                          password=self.config['proxy']['password'],
                                          verbose=self.config['proxy']['verbose'])
+        self.requestCommandBuilder = RequestCommandBuilder(self.serviceProxy)
 
     def __reportStart(self):
         print '*' * 80
@@ -41,8 +42,7 @@ class TestRunner:
         print '*' * 80
         print "*** FAILURE ***"
         print e
-        if self.config['traceOn']:
-            print traceback.format_exc()
+        print traceback.format_exc()
         print '*' * 80
 
 

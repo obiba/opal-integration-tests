@@ -23,7 +23,7 @@ class GenericClassFactory:
 
 
 class ScenariosFactoryParser():
-    serviceProxy = None
+    requestCommandBuilder = None
 
     @staticmethod
     def parse(scenariosData):
@@ -39,7 +39,7 @@ class ScenariosFactoryParser():
                 for testClass in testsData[package]:
                     className = "oit.scenarios.%s.%s" % (package, testClass)
                     test = GenericClassFactory.create(className, testsData[package][testClass])
-                    test.setServiceProxy(ScenariosFactoryParser.serviceProxy)
+                    test.setRequestCommandBuilder(ScenariosFactoryParser.requestCommandBuilder)
                     scenario.addTest(test)
 
     class ScenarioParser():

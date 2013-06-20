@@ -4,8 +4,8 @@ class TestInterface:
 
 
 class AbstractTest(TestInterface):
-    def setServiceProxy(self, proxy):
-        self.serviceProxy = proxy
+    def setRequestCommandBuilder(self, requestCommandBuilder):
+        self.requestCommandBuilder = requestCommandBuilder
         return self
 
     def setNext(self, test):

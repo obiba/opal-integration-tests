@@ -1,44 +1,64 @@
 import json
 from opal.protobuf import Magma_pb2
+import sys
+import unicodedata
 from oit.support.core import AbstractTest
+from oit.support.rest import JsonTableCreateCommand, HibernateDatasourceCreateCommand, DatasourcesListCommand, FileUploadCommand, ExcelTransientDatasourceCreateCommand, TablesListCommand, TableDeleteCommand, DatasourceDeleteCommand
 from oit.support.util import FileUtil
 
 
 class CreateDatasource(AbstractTest):
 
     def run(self, data):
-        request = self.serviceProxy.buildRequest().accept_json().content_type_protobuf()
+        self.requestCommandBuilder.build(HibernateDatasourceCreateCommand, dsName=self.dsName, type=self.type).execute()
 
-        # build transient datasource factory
-        factory = Magma_pb2.DatasourceFactoryDto()
-        hibernateFactory = factory.Extensions[Magma_pb2.HibernateDatasourceFactoryDto.params]
-        factory.name = getattr(self, 'name')
-        hibernateFactory.database = getattr(self, 'type')
 
-        # send request and parse response as a datasource
-        response = request.post().resource('/datasources').content(factory.SerializeToString()).send()
-        self.appendData(data, 'datasource', response.content)
+class DeleteDatasource(AbstractTest):
+
+    def run(self, data):
+        response = self.requestCommandBuilder.build(DatasourcesListCommand).execute()
+        dsJsonResponse = json.loads(response.content)
+
+        for datasource in dsJsonResponse:
+
+            if datasource['name'] == self.dsName:
+                response = self.requestCommandBuilder.build(TablesListCommand, dsName=self.dsName).execute()
+                tablesJsonResponse = json.loads(response.content)
+
+                for tableData in tablesJsonResponse:
+                    table = unicodedata.normalize('NFKD', tableData['name']).encode('ascii','ignore')
+                    self.requestCommandBuilder.build(TableDeleteCommand, dsName=self.dsName, table=table).execute()
+
+                self.requestCommandBuilder.build(DatasourceDeleteCommand, dsName=self.dsName).execute()
 
 
 class FindDatasource(AbstractTest):
 
     def run(self, data):
-        request = self.serviceProxy.buildRequest().accept_json()
-
-        # get the list of datasources
-        response = request.get().resource('/datasources').send()
+        response = self.requestCommandBuilder.build(DatasourcesListCommand).execute()
         jsonResponse = json.loads(response.content)
-        dsName = getattr(self, 'name')
 
         for datasource in jsonResponse:
-            if datasource['name'] == dsName:
+            if datasource['name'] == self.dsName:
                 return
-        raise Exception("Datasource %s not found" % dsName)
+        raise Exception("Datasource %s not found" % self.dsName)
 
 
-class CreateTable(AbstractTest):
+class CreateTableFromJson(AbstractTest):
 
     def run(self, data):
-        content = FileUtil.loadJsonAsString(getattr(self, 'file'))
-        request = self.serviceProxy.buildRequest().accept_json().content_type_json()
-        request.post().resource('/datasource/DummyDatasource/tables').content(content).send()
+        self.requestCommandBuilder.build(JsonTableCreateCommand, dsName=self.dsName, file=self.file).execute()
+
+
+class CreateTableFromExcel(AbstractTest):
+    def run(self, data):
+        file = self.file
+        remote = self.remote
+        dsName = self.dsName
+
+        self.requestCommandBuilder.build(FileUploadCommand, localFile=file, opalPath=remote).execute()
+        res = self.requestCommandBuilder.build(ExcelTransientDatasourceCreateCommand, file=file, remote=remote).execute()
+        print res
+        # response = self.requestCommandBuilder.build(DatasourceCompareCommand, transientName=jsonResponse['name'], dsName=dsName).execute()
+
+
