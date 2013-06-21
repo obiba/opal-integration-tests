@@ -58,7 +58,7 @@ class CreateTableFromExcel(AbstractTest):
                                                     dsName=dsName).execute()
 
         jsonResponse = JsonUtil.loads(response.content)
-        tableInfo = {'name': jsonResponse['withDatasource']['table'][0], 'entityType': 'Participant',
+        tableInfo = {'name': jsonResponse['compared']['table'][0], 'entityType': 'Participant',
                      'variables': jsonResponse['tableComparisons'][0]['newVariables']}
 
         jsonData = json.dumps(tableInfo)

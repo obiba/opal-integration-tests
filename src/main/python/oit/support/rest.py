@@ -117,6 +117,7 @@ class JsonTableCreateCommand(AbstractRequestCommand):
         AbstractRequestCommand.__init__(self, opalRequest)
         self.dsName = dsName
         self.jsonData = jsonData
+        print "***\n%s\n***\n" % jsonData
 
     def execute(self):
         resourcePath = "/datasource/%s/tables" % self.dsName
