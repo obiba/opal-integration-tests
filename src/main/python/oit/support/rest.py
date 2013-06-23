@@ -59,24 +59,58 @@ class HibernateDatasourceCreateCommand(AbstractRequestCommand):
         return self.opalRequest.send()
 
 
-class ExcelTransientDatasourceCreateCommand(AbstractRequestCommand):
+class TransientDatasourceCreateCommand(AbstractRequestCommand):
     def __init__(self, opalRequest, file, remote):
         AbstractRequestCommand.__init__(self, opalRequest)
         self.file = file
         self.remote = remote
 
+    def addExtension(self, factory):
+        pass
+
     def execute(self):
         # build transient datasource factory
         factory = Magma_pb2.DatasourceFactoryDto()
-        hibernateFactory = factory.Extensions[Magma_pb2.ExcelDatasourceFactoryDto.params]
-        hibernateFactory.file = os.path.join(self.remote, self.file)
-        hibernateFactory.readOnly = True
+        self.addExtension(factory)
 
         # send request and parse response as a datasource
         self.opalRequest.accept_json().content_type_protobuf().post().resource('/transient-datasources').content(
             factory.SerializeToString())
 
         return self.opalRequest.send()
+
+
+class ExcelTransientDatasourceCreateCommand(TransientDatasourceCreateCommand):
+    def __init__(self, opalRequest, file, remote):
+        TransientDatasourceCreateCommand.__init__(self, opalRequest, file, remote)
+
+    def addExtension(self, factory):
+        # build transient datasource factory
+        excelFactory = factory.Extensions[Magma_pb2.ExcelDatasourceFactoryDto.params]
+        excelFactory.file = os.path.join(self.remote, self.file)
+        excelFactory.readOnly = True
+
+
+class SpssTransientDatasourceCreateCommand(TransientDatasourceCreateCommand):
+    def __init__(self, opalRequest, file, remote, characterSet, locale, entityType):
+        TransientDatasourceCreateCommand.__init__(self, opalRequest, file, remote)
+        self.characterSet = characterSet
+        self.locale = locale
+        self.entityType = entityType
+
+    def addExtension(self, factory):
+        # build transient datasource factory
+        spssFactory = factory.Extensions[Magma_pb2.SpssDatasourceFactoryDto.params]
+        spssFactory.file = os.path.join(self.remote, self.file)
+
+        if self.characterSet:
+            spssFactory.characterSet = self.characterSet
+
+        if self.locale:
+            spssFactory.locale = self.locale
+
+        if self.entityType:
+            spssFactory.entityType = self.entityType
 
 
 class DatasourcesListCommand(AbstractRequestCommand):
@@ -117,7 +151,6 @@ class JsonTableCreateCommand(AbstractRequestCommand):
         AbstractRequestCommand.__init__(self, opalRequest)
         self.dsName = dsName
         self.jsonData = jsonData
-        print "***\n%s\n***\n" % jsonData
 
     def execute(self):
         resourcePath = "/datasource/%s/tables" % self.dsName
@@ -127,13 +160,11 @@ class JsonTableCreateCommand(AbstractRequestCommand):
 
 
 class JsonFileTableCreateCommand(JsonTableCreateCommand):
-
     def __init__(self, opalRequest, dsName, file):
         JsonTableCreateCommand.__init__(self, opalRequest, dsName, FileUtil.loadJsonAsString(file))
 
 
 class TablesListCommand(AbstractRequestCommand):
-
     def __init__(self, opalRequest, dsName):
         AbstractRequestCommand.__init__(self, opalRequest)
         self.dsName = dsName

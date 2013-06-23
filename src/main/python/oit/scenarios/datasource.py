@@ -1,6 +1,6 @@
 import json
 from oit.support.core import AbstractTest
-from oit.support.rest import JsonTableCreateCommand, HibernateDatasourceCreateCommand, DatasourcesListCommand, FileUploadCommand, ExcelTransientDatasourceCreateCommand, TablesListCommand, TableDeleteCommand, DatasourceDeleteCommand, DatasourceCompareCommand, JsonFileTableCreateCommand
+from oit.support.rest import JsonTableCreateCommand, HibernateDatasourceCreateCommand, DatasourcesListCommand, FileUploadCommand, ExcelTransientDatasourceCreateCommand, TablesListCommand, TableDeleteCommand, DatasourceDeleteCommand, DatasourceCompareCommand, JsonFileTableCreateCommand, SpssTransientDatasourceCreateCommand
 from oit.support.util import JsonUtil
 
 
@@ -43,15 +43,48 @@ class CreateTableFromJson(AbstractTest):
         self.requestCommandBuilder.build(JsonFileTableCreateCommand, dsName=self.dsName, file=self.file).execute()
 
 
+class CreateTableFromFile(AbstractTest):
+    def buildTransientDatasource(self):
+        pass
+
+    def run(self, data):
+        self.requestCommandBuilder.build(FileUploadCommand, localFile=file, opalPath=remote).execute()
+        response = self.buildTransientDatasource().exeute()
+
+        jsonResponse = JsonUtil.loads(response.content)
+        transientName = jsonResponse['name']
+        response = self.requestCommandBuilder.build(DatasourceCompareCommand, transientName=transientName,
+                                                    dsName=self.dsName).execute()
+
+        jsonResponse = JsonUtil.loads(response.content)
+        tableInfo = {'name': jsonResponse['compared']['table'][0], 'entityType': 'Participant',
+                     'variables': jsonResponse['tableComparisons'][0]['newVariables']}
+
+        jsonData = json.dumps(tableInfo)
+        self.requestCommandBuilder.build(JsonTableCreateCommand, dsName=self.dsName, jsonData=jsonData).execute()
+
+
 class CreateTableFromExcel(AbstractTest):
+    def buildTransientDatasource(self):
+        self.requestCommandBuilder.build(ExcelTransientDatasourceCreateCommand, file=file, remote=self.remote)
+
+
+class CreateTableFromSpss(AbstractTest):
+    def __init__(self):
+        # optional values
+        self.characterSet = None
+        self.locale = None
+        self.entityType = None
+
     def run(self, data):
         file = self.file
         remote = self.remote
         dsName = self.dsName
 
         self.requestCommandBuilder.build(FileUploadCommand, localFile=file, opalPath=remote).execute()
-        response = self.requestCommandBuilder.build(ExcelTransientDatasourceCreateCommand, file=file,
-                                                    remote=remote).execute()
+        response = self.requestCommandBuilder.build(SpssTransientDatasourceCreateCommand, file=file,
+                                                    remote=remote, characterSet=self.characterSet, locale=self.locale,
+                                                    entityType=self.entityType).execute()
         jsonResponse = JsonUtil.loads(response.content)
         transientName = jsonResponse['name']
         response = self.requestCommandBuilder.build(DatasourceCompareCommand, transientName=transientName,

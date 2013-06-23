@@ -37,10 +37,11 @@ class ScenariosFactoryParser():
         def parse(scenario, testsData):
             for package in testsData:
                 for testClass in testsData[package]:
-                    className = "oit.scenarios.%s.%s" % (package, testClass)
-                    test = GenericClassFactory.create(className, testsData[package][testClass])
-                    test.setRequestCommandBuilder(ScenariosFactoryParser.requestCommandBuilder)
-                    scenario.addTest(test)
+                    for key in testClass.keys():
+                        className = "oit.scenarios.%s.%s" % (package, key)
+                        test = GenericClassFactory.create(className, testClass[key])
+                        test.setRequestCommandBuilder(ScenariosFactoryParser.requestCommandBuilder)
+                        scenario.addTest(test)
 
     class ScenarioParser():
         @staticmethod
