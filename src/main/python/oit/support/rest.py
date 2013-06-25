@@ -1,7 +1,9 @@
+import os
+from os.path import basename
+
 from opal.core import OpalClient
 from opal.file import OpalFile
 from opal.protobuf import Magma_pb2
-import os
 
 from oit.support.util import FileUtil
 
@@ -111,6 +113,50 @@ class SpssTransientDatasourceCreateCommand(TransientDatasourceCreateCommand):
 
         if self.entityType:
             spssFactory.entityType = self.entityType
+
+
+class CsvTransientDatasourceCreateCommand(TransientDatasourceCreateCommand):
+    def __init__(self, opalRequest, file, remote, characterSet, entityType, separator, quote, firstRow):
+        TransientDatasourceCreateCommand.__init__(self, opalRequest, file, remote)
+        self.characterSet = characterSet
+        self.entityType = entityType
+        self.separator = separator
+        self.quote = quote
+        self.firstRow = firstRow
+
+    def addExtension(self, factory):
+        # build transient datasource factory
+        csvFactory = factory.Extensions[Magma_pb2.CsvDatasourceFactoryDto.params]
+
+        if self.characterSet:
+            csvFactory.characterSet = self.characterSet
+
+        if self.separator:
+            csvFactory.separator = self.separator
+
+        if self.quote:
+            csvFactory.quote = self.quote
+
+        if self.firstRow:
+            csvFactory.firstRow = self.firstRow
+
+        table = csvFactory.tables.add()
+        table.data = os.path.join(self.remote, self.file)
+        table.entityType = self.entityType
+
+        # if self.tables:
+        #     table.name = self.tables[0]
+        # else:
+        # Take filename as the table name
+        name = basename(self.file)
+
+        index = name.split('.')
+        if index > 0:
+            table.name = name[-1][:-index]
+        else:
+            table.name = name[-1]
+
+        print index, "\t", table.name
 
 
 class DatasourcesListCommand(AbstractRequestCommand):

@@ -1,6 +1,6 @@
 import json
 from oit.support.core import AbstractTest
-from oit.support.rest import JsonTableCreateCommand, HibernateDatasourceCreateCommand, DatasourcesListCommand, FileUploadCommand, ExcelTransientDatasourceCreateCommand, TablesListCommand, TableDeleteCommand, DatasourceDeleteCommand, DatasourceCompareCommand, JsonFileTableCreateCommand, SpssTransientDatasourceCreateCommand
+from oit.support.rest import JsonTableCreateCommand, HibernateDatasourceCreateCommand, DatasourcesListCommand, FileUploadCommand, ExcelTransientDatasourceCreateCommand, TablesListCommand, TableDeleteCommand, DatasourceDeleteCommand, DatasourceCompareCommand, JsonFileTableCreateCommand, SpssTransientDatasourceCreateCommand, CsvTransientDatasourceCreateCommand
 from oit.support.util import JsonUtil
 
 
@@ -48,8 +48,8 @@ class CreateTableFromFile(AbstractTest):
         pass
 
     def run(self, data):
-        self.requestCommandBuilder.build(FileUploadCommand, localFile=file, opalPath=remote).execute()
-        response = self.buildTransientDatasource().exeute()
+        self.requestCommandBuilder.build(FileUploadCommand, localFile=self.file, opalPath=self.remote).execute()
+        response = self.buildTransientDatasource().execute()
 
         jsonResponse = JsonUtil.loads(response.content)
         transientName = jsonResponse['name']
@@ -57,43 +57,44 @@ class CreateTableFromFile(AbstractTest):
                                                     dsName=self.dsName).execute()
 
         jsonResponse = JsonUtil.loads(response.content)
-        tableInfo = {'name': jsonResponse['compared']['table'][0], 'entityType': 'Participant',
-                     'variables': jsonResponse['tableComparisons'][0]['newVariables']}
+        tableInfo = {'name': jsonResponse['compared']['table'][0], 'entityType': 'Participant'}
+
+        if 'newVariables' in jsonResponse['tableComparisons'][0]:
+            tableInfo['variables'] = jsonResponse['tableComparisons'][0]['newVariables']
 
         jsonData = json.dumps(tableInfo)
         self.requestCommandBuilder.build(JsonTableCreateCommand, dsName=self.dsName, jsonData=jsonData).execute()
 
 
-class CreateTableFromExcel(AbstractTest):
+class CreateTableFromExcel(CreateTableFromFile):
     def buildTransientDatasource(self):
-        self.requestCommandBuilder.build(ExcelTransientDatasourceCreateCommand, file=file, remote=self.remote)
+        return self.requestCommandBuilder.build(ExcelTransientDatasourceCreateCommand, file=self.file,
+                                                remote=self.remote)
 
 
-class CreateTableFromSpss(AbstractTest):
+class CreateTableFromSpss(CreateTableFromFile):
     def __init__(self):
         # optional values
         self.characterSet = None
         self.locale = None
         self.entityType = None
 
-    def run(self, data):
-        file = self.file
-        remote = self.remote
-        dsName = self.dsName
+    def buildTransientDatasource(self):
+        return self.requestCommandBuilder.build(SpssTransientDatasourceCreateCommand, file=self.file,
+                                                remote=self.remote, characterSet=self.characterSet, locale=self.locale,
+                                                entityType=self.entityType)
 
-        self.requestCommandBuilder.build(FileUploadCommand, localFile=file, opalPath=remote).execute()
-        response = self.requestCommandBuilder.build(SpssTransientDatasourceCreateCommand, file=file,
-                                                    remote=remote, characterSet=self.characterSet, locale=self.locale,
-                                                    entityType=self.entityType).execute()
-        jsonResponse = JsonUtil.loads(response.content)
-        transientName = jsonResponse['name']
-        response = self.requestCommandBuilder.build(DatasourceCompareCommand, transientName=transientName,
-                                                    dsName=dsName).execute()
 
-        jsonResponse = JsonUtil.loads(response.content)
-        tableInfo = {'name': jsonResponse['compared']['table'][0], 'entityType': 'Participant',
-                     'variables': jsonResponse['tableComparisons'][0]['newVariables']}
+class CreateTableFromCsv(CreateTableFromFile):
+    def __init__(self):
+        # optional values
+        self.characterSet = None
+        self.separator = None
+        self.quote = None
+        self.firstRow = None
+        self.entityType = 'Participant'
 
-        jsonData = json.dumps(tableInfo)
-        self.requestCommandBuilder.build(JsonTableCreateCommand, dsName=self.dsName, jsonData=jsonData).execute()
-
+    def buildTransientDatasource(self):
+        return self.requestCommandBuilder.build(CsvTransientDatasourceCreateCommand, file=self.file, remote=self.remote,
+                                                characterSet=self.characterSet, entityType=self.entityType,
+                                                separator=self.separator, quote=self.quote, firstRow=self.firstRow)
