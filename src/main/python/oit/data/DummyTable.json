@@ -1,0 +1,37 @@
+{
+   "name":"DummyTableJson",
+   "entityType":"Participant",
+   "variables":[
+      {
+         "name":"VAR001",
+         "entityType":"Participant",
+         "valueType":"integer",
+         "isRepeatable":false,
+         "attributes":[
+            {
+               "name":"alias",
+               "value":"v1"
+            },
+            {
+               "name":"label",
+               "value":"Variable 001",
+               "locale":"en"
+            }
+         ],
+         "categories":[
+            {
+               "name":"cat001",
+               "isMissing":false
+            },
+            {
+               "name":"cat002",
+               "isMissing":false
+            },
+            {
+               "name":"cat003",
+               "isMissing":true
+            }
+         ]
+      }
+   ]
+}
