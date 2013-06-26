@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import unicodedata
 import yaml
 import oit
@@ -48,6 +49,10 @@ class JsonUtil:
         return json.loads(data, object_hook=JsonUtil._decode_dict)
 
     @staticmethod
+    def dumps(data):
+        return json.dumps(data)
+
+    @staticmethod
     def _decode_list(data):
         rv = []
         for item in data:
@@ -74,3 +79,25 @@ class JsonUtil:
                 value = JsonUtil._decode_dict(value)
             rv[key] = value
         return rv
+
+
+class MySqlUtil:
+    @staticmethod
+    def joinStatements(sqlFile):
+        statements = []
+        statement = ""
+        with open(sqlFile, 'r') as sqlContent:
+            for line in sqlContent:
+
+                if re.search(r'^--', line, re.M) or re.search(r'^\s+$', line, re.M):
+                    continue
+
+                statement += line.strip()
+
+                if re.search(r';', line, re.M):
+                    statements.append("%s" % statement)
+                    statement = ""
+
+        sqlContent.close()
+
+        return statements

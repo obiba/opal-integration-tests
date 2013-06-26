@@ -4,13 +4,17 @@ from oit.support.core import Scenarios, Scenario
 class GenericClassFactory:
     @staticmethod
     def create(className, properties):
-        instance = GenericClassFactory.__createInstance(className)
+        TestClass = GenericClassFactory.__createInstance(className)
+        # create the instance before setting attributes to overwrite defaults
+        testInstance = TestClass()
 
         # set test class attributes
         for property in properties:
-            setattr(instance, property, properties[property])
+            setattr(testInstance, property, properties[property])
 
-        return instance()
+        testInstance.prepare()
+
+        return testInstance
 
     @staticmethod
     def __createInstance(className):

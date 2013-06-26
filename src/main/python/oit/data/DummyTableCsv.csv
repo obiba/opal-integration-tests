@@ -1,3 +1,12 @@
-eid	name	male	female	age_0_4	age_5_9	age_10_14	age_15_19	age_20_24	age_25_29	age_30_34	age_35_39	age_40_44	age_45_49	age_50_54	age_55_59	age_60_64	age_65_69	age_70_74	age_75_79	age_80_84	age_85+	lang_english	lang_other
-3521005	Center A	327535	341020	39720	43835	49625	49090	46290	43260	44925	53085	61115	56815	47345	39790	27950	21120	16820	12540	8865	6350	436565	196765
-3542059	Center B	10145	11605	1035	1105	1310	1570	1375	1160	1100	1185	1555	1740	1595	1400	1140	935	1010	1010	715	830	20540	275
+id,Title,Image
+1,"Remnants of Ancient Streambed on Mars",http://www.nasa.gov/images/content/692087main_Grotzinger-1-pia16156-43_428-321.jpg
+2,"Curiosity's Roadside Discoveries",http://www.nasa.gov/images/content/692098main_Grotzinger-2-pia16157-43_428-321.jpg
+3,"Where Water Flowed Downslope",http://www.nasa.gov/images/content/692109main_Grotzinger-3-pia16158-43_428-321.jpg
+4,"Downslope of the Fan",http://www.nasa.gov/images/content/692121main_Grotzinger-4-pia16159-43_428-321.jpg
+5,"Best View of Goulburn Scour",http://www.nasa.gov/images/content/692133main_malin-4pia16187-43_428-321.jpg
+6,"Link to a Watery Past",http://www.nasa.gov/images/content/692144main_Williams-2pia16188-43_428-321.jpg
+7,"Rock Outcrops on Mars and Earth",http://www.nasa.gov/images/content/692155main_Williams-3pia16189-43_428-321.jpg
+8,"Dry Streambed on Alluvial Fan in Northern Chile",http://www.nasa.gov/images/content/692166main_Dietrich-2pia16191-43_428-321.jpg
+9,"Curiosity's Rock-Contact Science Begins",http://www.nasa.gov/images/content/691061main_pia16220-43_428-321.jpg
+10,"Mars Hand Lens Imager Nested Close-Ups of Rock 'Jake Matijevic'",691084main_pia16221-43_428-321.jpg
+11,"Making Tracks on Mars",679732main_pia16095-43_428-321.jpg

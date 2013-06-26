@@ -1,5 +1,6 @@
 import unittest
-from oit.support.rest import ServiceProxy, RequestCommandBuilder, FileUploadCommand
+from oit.support.database import DeleteDatabaseCommand, CreateDatabaseCommand, ImportDatabaseCommand
+from oit.support.rest import ServiceProxy, RequestCommandBuilder, FileUploadCommand, CreateOpalDatabaseCommand, DeleteOpalDatabaseCommand
 
 
 class TestRestCalls(unittest.TestCase):
@@ -12,8 +13,26 @@ class TestRestCalls(unittest.TestCase):
         setattr(cls, 'serviceProxy', serverProxy)
 
     def test_requestCommandBuilderFileUpload(self):
-        builder = RequestCommandBuilder(self.serviceProxy.buildRequest())
+        builder = RequestCommandBuilder(self.serviceProxy)
         builder.build(FileUploadCommand, localFile='../../resources/opal/DummyTable.xls', opalPath='/tmp').execute()
+
+    def test_dbConfig(self):
+        try:
+            builder = RequestCommandBuilder(self.serviceProxy)
+            sqlFile = '../../resources/opal/limesurvey.sql'
+            DeleteDatabaseCommand(host='localhost', user='root', password='1234', database='Limbo').execute()
+            CreateDatabaseCommand(host='localhost', user='root', password='1234', database='Limbo').execute()
+            ImportDatabaseCommand(host='localhost', user='root', password='1234', database='Limbo',
+                                  sqlFile=sqlFile).execute()
+
+            builder.build(CreateOpalDatabaseCommand, dbName='Limbo', dbHost='localhost',
+                          dbUrl='jdbc:mysql://localhost:3306/Limbo?characterEncoding=UTF-8', dbDriver='com.mysql.jdbc.Driver', dbUser='root',
+                          dbPassword='1234').execute()
+
+            # builder.build(DeleteOpalDatabaseCommand, dbName='Limbo').execute()
+
+        except Exception, e:
+            self.fail(e)
 
 
 class ArgsTest:

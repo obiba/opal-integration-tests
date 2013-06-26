@@ -1,3 +1,6 @@
+import time
+
+
 class TestInterface:
     def run(self, data):
         pass
@@ -13,6 +16,9 @@ class AbstractTest(TestInterface):
 
     def run(self, data):
         pass
+
+    def prepare(self):
+        return self
 
     def appendData(self, data, key, value):
         if data is None:
@@ -45,5 +51,24 @@ class Scenario(TestInterface):
         print "\tRunning sceranio %s" % getattr(self, 'name')
 
         for test in self.tests:
+            t = time.time()
             print "\t\tRunning test %s " % test.__class__.__name__
             test.run(data)
+            print "\t\tCompeted test %.3f " % (time.time()-t)
+
+
+class AbstractCommand:
+    def __init__(self):
+        self.sibling = None
+
+    def execute(self):
+        pass
+
+    def executeChain(self):
+        self.execute()
+        if self.sibling is not None:
+            self.sibling.executeChain()
+
+    def setNext(self, sibling):
+        self.sibling = sibling
+        return sibling
